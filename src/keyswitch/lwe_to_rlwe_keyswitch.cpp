@@ -7,6 +7,13 @@ LWEToRLWEKeySwitchKey::LWEToRLWEKeySwitchKey(const LWESK& sk_origin, const RLWEG
     init();
     key_switching_key_gen(sk_origin, sk_dest);
 }
+
+LWEToRLWEKeySwitchKey::LWEToRLWEKeySwitchKey(std::shared_ptr<const RLWEParam> dest_param,
+                                              std::vector<std::shared_ptr<ExtendedPolynomialCT>> ext_key_content)
+    : m_dest_param(std::move(dest_param)), m_ext_key_content(std::move(ext_key_content))
+{
+    init();
+}
  
 void LWEToRLWEKeySwitchKey::init(){
     m_degree_inv = Utils::mod_inv(m_dest_param->size(), m_dest_param->modulus()); 
@@ -40,6 +47,10 @@ void LWEToRLWEKeySwitchKey::lwe_to_rlwe_key_switch(RLWECT& out, const LWECT& lwe
         temp.add(temp, buf);
     }
     out = std::move(temp);
+}
+
+const std::vector<std::shared_ptr<ExtendedPolynomialCT>>& LWEToRLWEKeySwitchKey::ext_key_content()const{
+    return m_ext_key_content;
 }
 
 std::shared_ptr<const RLWEParam> LWEToRLWEKeySwitchKey::dest_param()const{

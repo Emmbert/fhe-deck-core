@@ -397,7 +397,15 @@ class ExtendedRLWECT : public ExtendedPolynomialCT{
   /// @param gadget_ct The RLWECT(base^i * message) ciphertexts.
   /// @param gadget_ct_sk The RLWECT(- base^i * message * secret key) ciphertexts.
   void init(std::vector<RLWECT> &gadget_ct);
-   
+
+  /// @brief Returns the b polynomials (one per gadget digit) in COEFFICIENT
+  /// form, converting internally from the stored eval/NTT form. This is
+  /// what a client sends for seed-based communication compression -- the a
+  /// side is never sent, only reconstructed server-side from a shared seed.
+  /// @return [digit][coefficient] -- m_gadget->digits vectors, each of
+  /// length m_rlwe_param->size().
+  std::vector<std::vector<int64_t>> get_b_coefficients()const;
+
   /// @brief Multiplication of this by ct, and store the result in out.
   /// @param out The result of the multiplication.
   /// @param ct The input ciphertext. 
@@ -460,6 +468,15 @@ class RLWEGadgetCT : public GadgetPolynomialCT{
   /// @param gadget_ct The RLWECT(base^i * message) ciphertexts.
   /// @param gadget_ct_sk The RLWECT(- base^i * message * secret key) ciphertexts.
   void init(std::vector<RLWECT> &gadget_ct, std::vector<RLWECT> &gadget_ct_sk);
+
+  /// @brief Returns the message-row b polynomials in COEFFICIENT form.
+  /// @return [digit][coefficient].
+  std::vector<std::vector<int64_t>> get_b_coefficients()const;
+
+  /// @brief Returns the message*sk-row b polynomials in COEFFICIENT form.
+  /// @return [digit][coefficient].
+  std::vector<std::vector<int64_t>> get_b_sk_coefficients()const;
+
    
   /// @brief Multiplication of this by ct, and store the result in out.
   /// @param out The result of the multiplication.
@@ -523,6 +540,12 @@ class RLWESK : public VectorCTSK{
     RLWESK(const RLWESK &other) = delete;
  
     RLWESK& operator=(const RLWESK other) = delete;
+
+    /// @brief Swaps the distribution used to generate the "a" component of
+    /// RLWE ciphertexts. Every subsequent encrypt() call draws from the new
+    /// distribution instead. Returns the PREVIOUS distribution.
+    /// @param dist The new distribution to use for "a".
+    std::shared_ptr<Distribution> set_unif_dist(std::shared_ptr<Distribution> dist);
   
     /// @brief The encryption function. Encrypts the message m, and stores the result in out.
     /// @param out The resulting ciphertext. It is assumed the object is properly initialized.
