@@ -10,10 +10,10 @@ SignedDecompositionGadget::SignedDecompositionGadget(int32_t degree, int64_t mod
     init();
 }
 
-void SignedDecompositionGadget::init(){ 
+void SignedDecompositionGadget::init(){
     /// TODO: Check if bits_base is a power of two.
-    this->bits_base = Utils::power_times(base, 2);  
-    this->digits = Utils::power_times(modulus, base);  
+    this->bits_base = Utils::power_times(base, 2);
+    this->digits = Utils::power_times(modulus, base);
 }
 
 void SignedDecompositionGadget::sample(VectorArray& out, const Vector& poly){   
@@ -43,15 +43,12 @@ void SignedDecompositionGadget::sample(VectorArray& out, const Vector& poly){
 }
  
 void SignedDecompositionGadget::decomp(VectorArray& d_ct, Vector& in){
-    int64_t mask = base-1;
-    int64_t shift;
-    for(int32_t i = 0; i < digits; ++i){
-        shift = bits_base*i;
-        for(int32_t j=0; j < degree; ++j){
-            // The jth coefficients of the ith (decomposed) polynomial
-            d_ct[i][j] = (in[j] & mask) >> shift;
+    for(int32_t j = 0; j < degree; ++j){
+        int64_t value = in[j];
+        for(int32_t i = 0; i < digits; ++i){
+            d_ct[i][j] = value % base;
+            value /= base;
         }
-        mask = mask << bits_base;
     }
 }
   
