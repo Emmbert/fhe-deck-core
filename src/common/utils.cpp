@@ -2,21 +2,30 @@
  
 using namespace FHEDeck;
   
-int32_t Utils::power_times(int64_t x, int64_t base){ 
-    if(x <= 1){
+int32_t Utils::power_times(int64_t x, int64_t base){
+    if (x <= 1) {
         return 1;
-    }  
-    int64_t base_bits = ceil(log2(base)); 
-    int64_t x_bits = ceil(log2(x));  
-    int32_t k = ceil((double)x_bits/(double)base_bits);   
-    return k;  
+    }
+    int32_t k = 0;
+    __int128 acc = 1;
+    while (acc < x) {
+        acc *= base;
+        ++k;
+    }
+    return k;
 }
 
 int32_t Utils::number_of_digits(int64_t x, int64_t base){
-    if(x == 0){
+    if (x <= 0) {
         return 1;
     }
-    return floor(log2(x)/log2(base))+1;  
+    int32_t k = 0;
+    __int128 acc = 1;
+    while (acc <= x) {
+        acc *= base;
+        ++k;
+    }
+    return k;
 }
 
 bool Utils::is_power_of(int64_t x, int64_t base){
@@ -114,18 +123,28 @@ int64_t Utils::integer_mod_form(int64_t in, int64_t Q){
     }
 }
   
-std::vector<int64_t> Utils::integer_decomp(int64_t in , int32_t basis, int32_t k, int32_t ell){
+std::vector<int64_t> Utils::integer_decomp(int64_t in, int32_t basis, int32_t k, int32_t ell){
+    (void)k; // no longer used -- decomposition is now done via real division/
+    // modulo, so it works for any basis, not just powers of two.
+
+    // Normalize `in` to a canonical non-negative residue mod basis^ell
+    // first. This matters because C++'s % keeps the sign of the dividend
+    // (e.g. -5 % 3 == -2, not the mathematically canonical +1), which would
+    // otherwise produce wrong digits for a negative `in`.
+    __int128 total = 1;
+    for (int32_t i = 0; i < ell; ++i) {
+        total *= basis;
+    }
+    __int128 normalized = ((__int128)in % total + total) % total;
+
     std::vector<int64_t> dec_out;
     dec_out.resize(ell);
-    int64_t mask = basis-1;
-    int64_t shift;
-    for(int32_t i = 0; i < ell; ++i){
-        shift = k*i; 
-        dec_out[i] = (in & mask) >> shift; 
-        mask = mask << k;
+    for (int32_t i = 0; i < ell; ++i) {
+        dec_out[i] = static_cast<int64_t>(normalized % basis);
+        normalized /= basis;
     }
     return dec_out;
-} 
+}
  
 int64_t Utils::integer_compose(const std::vector<int64_t>& dec_in, int32_t basis, int32_t ell){
     int64_t out = dec_in[0];
