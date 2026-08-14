@@ -79,12 +79,14 @@ if(NTT_ENGINE STREQUAL "Hexl")
     add_compile_definitions(USE_IntelHexl)
     include(ExternalProject)  
     ExternalProject_Add(
-        intel_hexl
-        GIT_REPOSITORY https://github.com/intel/hexl.git 
-        GIT_TAG development
-        PREFIX ${PROJECT_SOURCE_DIR}/external/intel_hexl
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${third_party}/intel_hexl 
-    )   
+            intel_hexl
+            GIT_REPOSITORY https://github.com/intel/hexl.git
+            GIT_TAG development
+            PREFIX ${PROJECT_SOURCE_DIR}/external/intel_hexl
+            CMAKE_ARGS
+            -DCMAKE_INSTALL_PREFIX=${third_party}/intel_hexl
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+    )
     include_directories(${third_party}/intel_hexl/include)
     link_directories(${third_party}/intel_hexl/lib) 
 
