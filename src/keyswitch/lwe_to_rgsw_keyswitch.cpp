@@ -3,15 +3,24 @@
 using namespace FHEDeck;
 
 
-LWEToRGSWKeySwitchKey::LWEToRGSWKeySwitchKey(const LWESK& sk_origin, const RLWEGadgetSK& sk_dest)
-    : lwe_to_rlwe_ks_key(sk_origin, sk_dest)
+LWEToRGSWKeySwitchKey::LWEToRGSWKeySwitchKey(const LWESK& sk_origin, const RLWEGadgetSK& sk_dest_ksk,
+                                              const RLWEGadgetSK& sk_dest_rgsw)
+    : lwe_to_rlwe_ks_key(sk_origin, sk_dest_ksk)
 {
-    /// Initiate the key switching key LWE to RLWE key switching key. 
-    /// Initiate the RGSW ciphertext of its own secret key.
-    ct_of_sk_dest = sk_dest.gadget_encrypt_sk();
-    rlwe_param = sk_dest.param();
-    gadget_param = sk_dest.gadget();
+    // CHANGED: both of these now come from sk_dest_rgsw, not sk_dest_ksk.
+    // ct_of_sk_dest's row count/scaling must match whatever base the
+    // client's LWEGadgetCT (LWE') was built with, so that when
+    // lwe_to_rlwe_key_switch below switches each of its rows individually,
+    // the resulting "message row" and this "message*sk row" agree on what
+    // each row represents (m * base^i for the SAME base). gadget_param is
+    // stored on the OUTPUT RLWEGadgetCT and later drives how
+    // RLWEGadgetCT::mul decomposes incoming ciphertexts -- it must be the
+    // same base too, for exactly the same reason.
+    ct_of_sk_dest = sk_dest_rgsw.gadget_encrypt_sk();
+    rlwe_param = sk_dest_rgsw.param();
+    gadget_param = sk_dest_rgsw.gadget();
 }
+
  
 
 RLWEGadgetCT LWEToRGSWKeySwitchKey::lwe_to_rlwe_key_switch(const LWEGadgetCT& lwe_ct_in)
