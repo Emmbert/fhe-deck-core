@@ -33,7 +33,7 @@ void PolynomialEvalFormLongInteger::add(PolynomialEvalForm &out, const Polynomia
     const PolynomialEvalFormLongInteger& other_cast = static_cast<const PolynomialEvalFormLongInteger&>(other);
     PolynomialEvalFormLongInteger& out_cast = static_cast<PolynomialEvalFormLongInteger&>(out);
     for(int32_t i = 0; i < m_size; ++i){
-        out_cast.m_eval_long[i] = m_eval_long[i] + other_cast.m_eval_long[i];
+    out_cast.m_eval_long[i] = (m_eval_long[i] + other_cast.m_eval_long[i]) % m_modulus;
     }
 }
 
