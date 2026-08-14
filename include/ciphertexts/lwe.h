@@ -243,6 +243,16 @@ class LWESK {
 
     /// @brief Deleted so that you are not tempted to copy the secret key around. 
     LWESK& operator=(const LWESK other)  = delete;
+
+    /// @brief Swaps the distribution used to generate the "a" component of
+    /// ciphertexts. Every subsequent call to encrypt() (and, transitively,
+    /// LWEGadgetSK::gadget_encrypt, since it just calls this object's
+    /// encrypt() repeatedly) draws from the new distribution instead.
+    /// Returns the PREVIOUS distribution, so callers can restore the
+    /// original (std::random_device-seeded) behaviour afterward if desired.
+    /// @param dist The new distribution to use for "a".
+    std::shared_ptr<Distribution> set_unif_dist(std::shared_ptr<Distribution> dist);
+
  
     /// @brief Encryption a message m, and returns a pointer to a new LWECT object.
     /// @param m The input message. Should be an integer in the ciphertext modulus range.
@@ -349,6 +359,17 @@ class LWEGadgetCT{
   /// @param lwe_par Pointer to the LWE parameters.
   /// @param base The decomposition base.  
   LWEGadgetCT(std::shared_ptr<const LWEParam> lwe_par, int64_t base);
+
+  /// @brief Builds directly from pre-built ciphertext content -- e.g.
+  /// reconstructed server-side from a seed + received b-values, instead of
+  /// via LWEGadgetSK::gadget_encrypt. Mirrors the equivalent constructors
+  /// already added to ExtendedRLWECT/RLWEGadgetCT/LWEToRLWEKeySwitchKey.
+  LWEGadgetCT(std::shared_ptr<const LWEParam> lwe_par, int64_t base, std::vector<LWECT> ct_content);
+
+  /// @brief Returns the b value of each digit's ciphertext -- what a client
+  /// sends for seed-based communication compression (together with a seed
+  /// covering the a side of every digit).
+  std::vector<int64_t> get_b_values()const;
   
   /// @brief Multiplication of this object by a scalar.
   /// @param out_ct The LWECT that stores the result.

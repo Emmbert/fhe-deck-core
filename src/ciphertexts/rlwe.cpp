@@ -304,7 +304,21 @@ void ExtendedRLWECT::init(std::vector<RLWECT> &gadget_ct){
     for(int32_t i = 0; i < m_gadget->digits; ++i){
         array_coef.set_polynomial_at(i, gadget_ct[i].b());
     } 
-    m_rlwe_param->mul_engine()->to_eval(*m_array_eval_b, array_coef);  
+    m_rlwe_param->mul_engine()->to_eval(*m_array_eval_b, array_coef);
+}
+
+std::vector<std::vector<int64_t>> ExtendedRLWECT::get_b_coefficients()const{
+    PolynomialArray b_coef(m_rlwe_param->size(), m_rlwe_param->modulus(), m_gadget->digits);
+    m_rlwe_param->mul_engine()->to_coef(b_coef, *m_array_eval_b);
+
+    std::vector<std::vector<int64_t>> out(m_gadget->digits);
+    for(int32_t i = 0; i < m_gadget->digits; ++i){
+        out[i].resize(m_rlwe_param->size());
+        for(int32_t j = 0; j < m_rlwe_param->size(); ++j){
+            out[i][j] = b_coef[i][j];
+        }
+    }
+    return out;
 }
   
 void ExtendedRLWECT::mul(VectorCT &out, const Vector &msg){ 
@@ -362,6 +376,32 @@ void RLWEGadgetCT::init(std::vector<RLWECT> &gadget_ct, std::vector<RLWECT> &gad
     } 
     m_rlwe_param->mul_engine()->to_eval(*m_array_eval_b_sk, array_coef);   
 }
+
+std::vector<std::vector<int64_t>> RLWEGadgetCT::get_b_coefficients()const{
+    PolynomialArray b_coef(m_rlwe_param->size(), m_rlwe_param->modulus(), m_gadget->digits);
+    m_rlwe_param->mul_engine()->to_coef(b_coef, *m_array_eval_b);
+    std::vector<std::vector<int64_t>> out(m_gadget->digits);
+    for(int32_t i = 0; i < m_gadget->digits; ++i){
+        out[i].resize(m_rlwe_param->size());
+        for(int32_t j = 0; j < m_rlwe_param->size(); ++j){
+            out[i][j] = b_coef[i][j];
+        }
+    }
+    return out;
+}
+
+std::vector<std::vector<int64_t>> RLWEGadgetCT::get_b_sk_coefficients()const{
+    PolynomialArray b_coef(m_rlwe_param->size(), m_rlwe_param->modulus(), m_gadget->digits);
+    m_rlwe_param->mul_engine()->to_coef(b_coef, *m_array_eval_b_sk);
+    std::vector<std::vector<int64_t>> out(m_gadget->digits);
+    for(int32_t i = 0; i < m_gadget->digits; ++i){
+        out[i].resize(m_rlwe_param->size());
+        for(int32_t j = 0; j < m_rlwe_param->size(); ++j){
+            out[i][j] = b_coef[i][j];
+        }
+    }
+    return out;
+}
   
 void RLWEGadgetCT::mul(VectorCT &out, const VectorCT &ct){ 
     //RLWECT& out_ptr = static_cast<RLWECT&>(out);
@@ -396,6 +436,12 @@ void RLWESK::init(){
     m_vector_ct_param = m_param;
     m_unif_dist = std::shared_ptr<Distribution>(new StandardUniformIntegerDistribution(0, m_param->modulus()));
     m_error_dist = std::shared_ptr<Distribution>(new StandardRoundedGaussianDistribution(0, m_noise_stddev));
+}
+
+std::shared_ptr<Distribution> RLWESK::set_unif_dist(std::shared_ptr<Distribution> dist){
+    std::shared_ptr<Distribution> previous = m_unif_dist;
+    m_unif_dist = dist;
+    return previous;
 }
 
 void RLWESK::key_gen(){

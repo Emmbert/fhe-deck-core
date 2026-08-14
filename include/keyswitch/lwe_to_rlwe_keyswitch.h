@@ -43,10 +43,24 @@ namespace FHEDeck{
         LWEToRLWEKeySwitchKey(const LWEToRLWEKeySwitchKey &other) = delete;
 
         LWEToRLWEKeySwitchKey& operator=(const LWEToRLWEKeySwitchKey other) = delete;
+
+        // NEW: builds directly from pre-built content -- either an already-
+        // computed key (Version B reuse, elsewhere) or, more importantly,
+        // content reconstructed server-side from a seed + received b-values.
+        // Skips key_switching_key_gen's own encrypt() calls entirely.
+        // Mirrors exactly what the existing cereal load() already does.
+        LWEToRLWEKeySwitchKey(std::shared_ptr<const RLWEParam> dest_param,
+                              std::vector<std::shared_ptr<ExtendedPolynomialCT>> ext_key_content);
+
  
         void lwe_to_rlwe_key_switch(RLWECT& rlwe_ct_out, const LWECT& lwe_ct_in);
 
         std::shared_ptr<const RLWEParam> dest_param()const;
+
+        // NEW: read access to the automorphism keys -- needed to extract
+        // their b-values for the seed-compressed wire format.
+        const std::vector<std::shared_ptr<ExtendedPolynomialCT>>& ext_key_content()const;
+
  
     #if defined(USE_CEREAL)
         template <class Archive>
