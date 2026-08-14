@@ -126,3 +126,9 @@ I thank Leonard Schild for contributions to the library. In particular, for the 
 
 - the hexl flag is case-sensitive!
 - cmake version on our arch linux servers is to high. I set a local variable: `export CMAKE_POLICY_VERSION_MINIMUM=3.5`
+
+```bash
+cmake -S . -B build -DUSE_EXAMPLES=TRUE -DNTT_ENGINE=Hexl -DUSE_CEREAL=FALSE
+cmake --build build
+./tets...
+```

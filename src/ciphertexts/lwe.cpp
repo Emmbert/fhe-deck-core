@@ -184,6 +184,24 @@ LWEGadgetCT::LWEGadgetCT(std::shared_ptr<const LWEParam> lwe_param, int64_t base
     m_ct_content.resize(m_digits);
 }
 
+LWEGadgetCT::LWEGadgetCT(std::shared_ptr<const LWEParam> lwe_par, int64_t base, std::vector<LWECT> ct_content)
+    : m_ct_content(std::move(ct_content))
+{
+    m_lwe_param = lwe_par;
+    m_base = base;
+    m_bits_base = Utils::power_times(base, 2); // vestigial, kept for consistency with the other constructor
+    m_digits = static_cast<int32_t>(m_ct_content.size());
+}
+
+std::vector<int64_t> LWEGadgetCT::get_b_values()const{
+    std::vector<int64_t> out;
+    out.reserve(m_ct_content.size());
+    for(const auto& ct : m_ct_content){
+        out.push_back(ct[0]);
+    }
+    return out;
+}
+
 void LWEGadgetCT::gadget_mul(LWECT& out_ct, int64_t scalar){  
     std::vector<int64_t> scalar_decomposed = Utils::integer_decomp(scalar, m_base, m_bits_base, m_digits);
     LWECT temp_ct(m_lwe_param); 
@@ -246,6 +264,13 @@ void LWESK::init_key(){
     } 
     sk_dist->fill(m_key);  
 }
+
+std::shared_ptr<Distribution> LWESK::set_unif_dist(std::shared_ptr<Distribution> dist){
+    std::shared_ptr<Distribution> previous = m_unif_dist;
+    m_unif_dist = dist;
+    return previous;
+}
+
  
 LWECT LWESK::encrypt(int64_t m){
     //std::unique_ptr<LWECT> out = std::make_unique<LWECT>(m_param);
