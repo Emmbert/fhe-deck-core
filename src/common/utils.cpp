@@ -264,17 +264,17 @@ int64_t Utils::count_negative(const std::vector<int64_t>& in){
 }
 
 
-LongIntegerMultipler::LongIntegerMultipler(unsigned long modulus){ 
+LongIntegerMultipler::LongIntegerMultipler(uint64_t modulus){ 
     this->modulus = modulus;
-    unsigned long bits_modulus = Utils::power_times(modulus, 2);  
+    uint64_t bits_modulus = Utils::power_times(modulus, 2);  
     this->bits_base = 63 - bits_modulus; 
     this->base = Utils::pow(bits_base, 2); 
     this->modulus_log_base = Utils::power_times(modulus, base);   
 }
 
-unsigned long LongIntegerMultipler::mul(unsigned long in_1, unsigned long in_2){   
+uint64_t LongIntegerMultipler::mul(uint64_t in_1, uint64_t in_2){   
     std::vector<int64_t> decomp  = Utils::integer_decomp(in_2, base, bits_base, modulus_log_base);   
-    unsigned long out = (in_1 * decomp[modulus_log_base - 1]) % modulus;   
+    uint64_t out = (in_1 * decomp[modulus_log_base - 1]) % modulus;   
     for(int32_t i = 1; i < modulus_log_base; ++i){  
         out = (out * base) % modulus; 
         out = (out +  (decomp[modulus_log_base - i - 1] * in_1)) % modulus;  
