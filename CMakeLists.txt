@@ -96,6 +96,13 @@ if(NTT_ENGINE STREQUAL "Hexl")
         IMPORTED_LOCATION ${third_party}/intel_hexl/lib/libhexl.a
     ) 
     set(intelhexl_link intel_hexl_lib) 
+elseif(NTT_ENGINE STREQUAL "PortableNTT")
+    # Portable, real O(n log n) negacyclic NTT: plain C++20, no platform
+    # intrinsics, no external dependency -- compiles under WebAssembly
+    # (Emscripten) as well as natively. See include/math/portable_ntt_engine.h.
+    add_compile_definitions(USE_PortableNTT)
+    set(intelhexl_link "")
+    list(REMOVE_ITEM SRC_MATH ${CMAKE_CURRENT_SOURCE_DIR}/src/math/intel_hexl_engine.cpp)
 elseif(NTT_ENGINE STREQUAL "BUILDIN")
     set(intelhexl_link "")  
     list(REMOVE_ITEM SRC_MATH ${CMAKE_CURRENT_SOURCE_DIR}/src/math/intel_hexl_engine.cpp)

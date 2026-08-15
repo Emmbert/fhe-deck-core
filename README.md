@@ -38,7 +38,10 @@ The following CMake flags can be used to configure the build:
 - **Description**: Specifies the Number Theoretic Transform (NTT) engine to use.
 - **Options**:
   - `Hexl`: Use Intel HEXL for NTT operations.
-  - `BUILDIN`: Use the built-in NTT engine.
+  - `PortableNTT`: Use the built-in, portable, real O(n log n) negacyclic NTT
+    engine (no platform intrinsics, no external dependency). Fast and
+    correct on any platform HEXL doesn't support, e.g. WebAssembly.
+  - `BUILDIN`: Use the naive O(n^2) built-in NTT engine.
 - **Default**: `Hexl`
 
 ### `FFT_ENGINE`

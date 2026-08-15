@@ -7,6 +7,10 @@
 #include "math/intel_hexl_engine.h"
 #endif
 
+#if defined(USE_PortableNTT)
+#include "math/portable_ntt_engine.h"
+#endif
+
 #if defined(USE_FFTW)
 #include "math/fftw_engine.h"
 #endif
@@ -44,6 +48,8 @@ std::shared_ptr<PolynomialMultiplicationEngine> PolynomialMultiplicationEngineBu
     if(m_arithmetic == PolynomialArithmetic::ntt64){
         #if defined(USE_IntelHexl)
             return std::shared_ptr<PolynomialMultiplicationEngine>(new IntelHexlNTTEngine(m_degree, m_coef_modulus));
+        #elif defined(USE_PortableNTT)
+            return std::shared_ptr<PolynomialMultiplicationEngine>(new PortableNTTEngine(m_degree, m_coef_modulus));
         #else 
             std::cout << "WARNING: No NTT engine available. Using NaiveNegacyclicMultiplicationEngine." << std::endl;
             return std::shared_ptr<PolynomialMultiplicationEngine>(new NaiveNegacyclicMultiplicationEngine(m_degree, m_coef_modulus));
