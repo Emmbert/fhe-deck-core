@@ -1,6 +1,8 @@
 #include "math/polynomial_inversion_engine_builder.h"
  
+#if defined(USE_NTL)
 #include "math/ntl_inversion_engine.h" 
+#endif
 #include "math/euclidean_inversion_engine.h"
 
 using namespace FHEDeck; 

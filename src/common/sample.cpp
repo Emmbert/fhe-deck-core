@@ -30,7 +30,7 @@ StandardUniformIntegerDistribution::StandardUniformIntegerDistribution(int64_t f
     dist = std::uniform_int_distribution<int64_t>(from, to);
 }
 
-long StandardUniformIntegerDistribution::next(){
+int64_t StandardUniformIntegerDistribution::next(){
     return dist(e);
 }
 
