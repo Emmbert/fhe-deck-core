@@ -1,4 +1,5 @@
 #include "common/gadget.h"
+#include <cassert>
  
 using namespace FHEDeck;
 
@@ -16,32 +17,49 @@ void SignedDecompositionGadget::init(){
     this->digits = Utils::power_times(modulus, base);
 }
 
-void SignedDecompositionGadget::sample(VectorArray& out, const Vector& poly){   
-    Vector signed_poly(degree, modulus); 
-    Vector sign(degree, modulus);
-    Vector::array_signed_form(signed_poly, poly); 
-    int64_t half = modulus/2;
-    // Extracting the signs
-    for(int32_t i = 0; i < degree; ++i){  
-        if(poly[i] <= half){
-            signed_poly[i] = poly[i];
-            sign[i] = 1;
-        }else{
-            signed_poly[i] = std::abs<int64_t>(poly[i]-modulus);
-            sign[i] = -1;
+void SignedDecompositionGadget::sample(VectorArray& out, const Vector& poly){
+    // Balanced (centered) base-B decomposition.
+    //
+    // Each coefficient x in [0, q) is first mapped to its signed form
+    // v in (-q/2, q/2]. Then, digit by digit, we pick the representative of
+    // v mod B closest to zero, d in [-floor(B/2), floor(B/2)], and continue
+    // with (v - d) / B, which is exact. This yields
+    //     v = sum_j d_j * B^j,   |d_j| <= floor(B/2),
+    // with the same gadget vector (1, B, B^2, ...) as before, so gadget keys
+    // and RLWEGadgetCT encryptions are unchanged.
+    //
+    // Even bases: rem == B/2 can be written as +B/2 or -B/2. The tie must
+    // follow the sign of v (round towards zero); otherwise negative values
+    // (or, for the other choice, positive values) need more than `digits`
+    // digits - for B = 2 they never terminate at all.
+    //
+    // `digits` = ceil(log_B q) suffices for every v in (-q/2, q/2].
+    const int64_t half_base = base / 2;
+    const bool even_base = (base % 2 == 0);
+    for(int32_t i = 0; i < degree; ++i){
+        int64_t value = Utils::integer_signed_form(poly[i], modulus);
+        for(int32_t j = 0; j < digits; ++j){
+            int64_t rem = value % base;          // C++: sign follows value
+            if(rem < 0) rem += base;             // rem in [0, base)
+            int64_t digit;
+            if(rem > half_base || (even_base && rem == half_base && value < 0)){
+                digit = rem - base;              // negative digit
+            }else{
+                digit = rem;                     // non-negative digit
+            }
+            out[j][i] = digit;
+            value = (value - digit) / base;      // exact division
         }
+        assert(value == 0 && "SignedDecompositionGadget: too few digits");
     }
-    // Decomposition
-    decomp(out, signed_poly);
-    // Adding the signs
+    // Store digits in [0, q) like the rest of the library expects.
     for(int32_t j = 0; j < digits; ++j){
-        for(int32_t i = 0; i < degree; ++i){ 
-            out[j][i] = out[j][i] * sign[i];
-        }
-        out[j].normalize(); 
-    } 
+        out[j].normalize();
+    }
 }
  
+// Unsigned base-B digits of non-negative inputs. No longer used by sample();
+// kept for API compatibility.
 void SignedDecompositionGadget::decomp(VectorArray& d_ct, Vector& in){
     for(int32_t j = 0; j < degree; ++j){
         int64_t value = in[j];
