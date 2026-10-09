@@ -650,6 +650,15 @@ class RLWEGadgetSK : public GadgetPolynomialCTSK{
     RLWEGadgetCT gadget_encrypt(const std::vector<int64_t>& msg)const;
 
     RLWEGadgetCT gadget_encrypt_sk()const;
+
+    /// @brief Returns RLWE'(sk^2) = ( RLWE(B^i * sk^2) )_i, the scheme switching key of
+    /// De Micheli, Kim, Micciancio, Suhl (ePrint 2023/112, Sec. 3.1). It has only half the
+    /// rows of gadget_encrypt_sk() = RGSW(sk) = (RLWE'(sk), RLWE'(sk^2)): the RLWE'(sk) half
+    /// is not needed, because b*sk has the noiseless encryption (a = b, b = 0).
+    /// @note The "a" polynomials are drawn from the RLWESK's current uniform distribution,
+    /// in digit order i = 0..digits-1 (exactly one draw per digit), so a seeded distribution
+    /// set via RLWESK::set_unif_dist works as for every other key.
+    ExtendedRLWECT extended_encrypt_sk_squared()const;
        
     /// @brief Encrypts the message msg, and returns the resulting ciphertext.
     /// @param msg The input message.

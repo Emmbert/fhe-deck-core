@@ -611,6 +611,15 @@ RLWEGadgetCT RLWEGadgetSK::gadget_encrypt(const std::vector<int64_t>& msg)const{
 RLWEGadgetCT RLWEGadgetSK::gadget_encrypt_sk()const{
     return gadget_encrypt(m_rlwe_sk->m_sk_poly);
 }
+
+ExtendedRLWECT RLWEGadgetSK::extended_encrypt_sk_squared()const{
+    // sk^2 in the ring (negacyclic product, reduced mod q)
+    Polynomial sk_squared(m_rlwe_sk->param()->size(), m_rlwe_sk->param()->modulus());
+    m_rlwe_sk->m_sk_poly.mul(sk_squared, m_rlwe_sk->m_sk_poly, m_rlwe_sk->param()->mul_engine());
+    // RLWE(B^i * sk^2) for i = 0..digits-1 (ext_enc scales sk_squared in place)
+    std::vector<RLWECT> gadget_ct = ext_enc(sk_squared);
+    return ExtendedRLWECT(m_rlwe_sk->param(), m_gadget, gadget_ct);
+}
   
 std::shared_ptr<GadgetVectorCT> RLWEGadgetSK::gadget_encrypt_as_gadget_vector_ct(const Vector &msg)const{   
     /*
